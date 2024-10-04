@@ -28,7 +28,6 @@ class Client:
                 print("end of convo")
                 self.client_socket.close()
             else:
-                message=f"client: {message}"
                 self.client_socket.send(message.encode())
 
 
@@ -51,4 +50,4 @@ class Client:
             
     
 
-exm=Client("10.0.0.53")
+exm=Client("127.0.0.1")

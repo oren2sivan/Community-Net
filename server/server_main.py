@@ -14,6 +14,8 @@ class Server:
         self.server.bind((self.ip,52124))
         self.server.listen(5)
         print("server running and listening for connections")
+        self.menu_thread = threading.Thread(target=self.send_message_menu)
+        self.menu_thread.start()
         self.accept_connections()
     
 
@@ -25,18 +27,11 @@ class Server:
             self.clients_list.append((client_socket,addr))
             print(self.clients_list)
 
-            thread = threading.Thread(target=self.chat_with_client, args=(client_socket,addr))
-            thread.start()
+            thread1=threading.Thread(target=self.recieve_from_client, args=(client_socket,addr))        
+            thread1.start()
 
 
 
-    def chat_with_client(self,client_socket,addr):
-        thread1=threading.Thread(target=self.send_message_menu)
-        thread2=threading.Thread(target=self.recieve_from_client, args=(client_socket,addr))
-
-        thread1.start()
-        thread2.start()
-        
     def send_message_menu(self):
         while True:
             print("\nSelect a client to send a message to:")
@@ -95,4 +90,4 @@ class Server:
         
 
 
-exm=Server("10.0.0.53")
+exm=Server("127.0.0.1")
