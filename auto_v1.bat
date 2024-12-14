@@ -77,10 +77,11 @@ echo key = secrets.token_hex(32) >> "%WORK_DIR%\generate_swarm_key.py"
 echo with open("swarm.key", "w") as f: >> "%WORK_DIR%\generate_swarm_key.py"
 echo     f.write(f"/key/swarm/psk/1.0.0/^n/base16/^n{key}") >> "%WORK_DIR%\generate_swarm_key.py"
 
+
+
 REM Generate swarm key using Python
 echo Generating swarm key...
-cd "%WORK_DIR%"
-python "generate_swarm_key.py"
+python "%WORK_DIR%\generate_swarm_key.py"
 if not exist "swarm.key" (
     echo Failed to generate swarm key. Exiting.
     exit /b
@@ -90,30 +91,37 @@ REM Move swarm key to IPFS directory
 echo Moving swarm key to IPFS configuration directory...
 move /y "swarm.key" "%USERPROFILE%\.ipfs\swarm.key"
 
-:: Define path to IPFS config file
+REM Define path to IPFS config file
 set "configFile=C:\Users\Oren\.ipfs\config"
 
-:: Backup the original config file
+REM Backup the original config file
 echo Backing up original config file...
 copy "%configFile%" "%configFile%.bak"
 
-:: Start updating the config file
+REM Start updating the config file
 echo Updating IPFS config...
 
-:: Use PowerShell to modify the JSON content directly in the config file
+REM Use PowerShell to modify the JSON content directly in the config file
 powershell -Command "(Get-Content '%configFile%' | ForEach-Object { $_ -replace '\"Bootstrap\": \[.*?\]', '\"Bootstrap\": []' }) | Set-Content '%configFile%'"
 
 powershell -Command "(Get-Content '%configFile%' | ForEach-Object { $_ -replace '\"Routing\": \{ \"Type\": \"auto\" \}', '\"Routing\": { \"Type\": \"dht\" }' }) | Set-Content '%configFile%'"
 
-powershell -Command "(
-    $configFile = '%configFile%'
-    $swarmKey = Get-Content '%USERPROFILE%\.ipfs\swarm.key' | Out-String | Trim
-    $content = Get-Content $configFile
-    $content = $content -replace '\"Swarm\": \{.*?\}', '\"Swarm\": { \"AddrFilters\": [ \"/ip4/0.0.0.0/tcp/0\", \"/ip6/::/tcp/0\" ], \"PrivateKey\": \"/key/swarm/psk/1.0.0/base16/' + $swarmKey + '\" }'
-    $content | Set-Content $configFile
-)"
+REM Use PowerShell to modify the JSON content directly in the config file
+REM Create Python script to modify IPFS config
+echo import json > "%WORK_DIR%\update_ipfs_config.py"
+echo with open(r"%USERPROFILE%\.ipfs\config", "r") as f: >> "%WORK_DIR%\update_ipfs_config.py"
+echo     config = json.load(f) >> "%WORK_DIR%\update_ipfs_config.py"
+echo config["Bootstrap"] = [] >> "%WORK_DIR%\update_ipfs_config.py"
+echo config["Routing"]["Type"] = "dht" >> "%WORK_DIR%\update_ipfs_config.py"
+echo config["Ipns"]["RecordLifetime"]="0s" >> "%WORK_DIR%\update_ipfs_config.py"
+echo with open(r"%USERPROFILE%\.ipfs\config", "w") as f: >> "%WORK_DIR%\update_ipfs_config.py"
+echo     json.dump(config, f, indent=4) >> "%WORK_DIR%\update_ipfs_config.py"
 
-:: End the process
+REM Run Python script to update the config file
+python "%WORK_DIR%\update_ipfs_config.py"
+
+
+REM End the process
 echo Config file updated successfully!
 
 REM Start the IPFS daemon
