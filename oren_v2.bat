@@ -70,9 +70,9 @@ if errorlevel 1 (
 
 REM Create Python script for swarm key generation
 echo Creating Python script for swarm key generation...
-echo import os > "%WORK_DIR%\generate_swarm_key.py"
+echo import hashlib > "%WORK_DIR%\generate_swarm_key.py"
 echo import secrets >> "%WORK_DIR%\generate_swarm_key.py"
-echo key = secrets.token_hex(32) >> "%WORK_DIR%\generate_swarm_key.py"
+echo key = hashlib.sha256("password".encode()).hexdigest() >> "%WORK_DIR%\generate_swarm_key.py"
 echo with open("swarm.key", "w") as f: >> "%WORK_DIR%\generate_swarm_key.py"
 echo     f.write(f"/key/swarm/psk/1.0.0/\n/base16/\n{key}") >> "%WORK_DIR%\generate_swarm_key.py"
 
@@ -114,7 +114,6 @@ setx LIBP2P_FORCE_PNET 1
 
 REM Verify configuration
 echo Verifying IPFS configuration...
-ipfs config show
 
 REM Optional: Get and display Peer ID
 echo Getting Peer ID...
