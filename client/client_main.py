@@ -23,12 +23,11 @@ class Client:
 
     def send_to_server(self):
         while True:
-            message=input("--")
-            if message=="exit":
-                print("end of convo")
-                self.client_socket.close()
-            else:
-                self.client_socket.send(message.encode())
+            username=input("enter username:")
+            password=input("enter password:")           
+            self.client_socket.send(username.encode())
+            self.client_socket.send(password.encode())
+
 
 
     def recieve_from_server(self):

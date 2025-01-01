@@ -1,6 +1,6 @@
 import socket
 import threading
-
+import mongo_setup
 #
 class Server:
     
@@ -17,6 +17,7 @@ class Server:
         self.menu_thread = threading.Thread(target=self.send_message_menu)
         self.menu_thread.start()
         self.accept_connections()
+        self.users_collection=mongo_setup.connect_mongo_db_users()
     
 
     def accept_connections(self):
@@ -27,7 +28,7 @@ class Server:
             self.clients_list.append((client_socket,addr))
             print(self.clients_list)
 
-            thread1=threading.Thread(target=self.recieve_from_client, args=(client_socket,addr))        
+            thread1=threading.Thread(target=self.authenticate_log_in, args=(client_socket,addr))        
             thread1.start()
 
 
@@ -72,6 +73,33 @@ class Server:
             self.clients_list.remove((client_socket, addr))
             client_socket.close()   
 
+    def authenticate_log_in(self, client_socket, addr):
+            while True:
+                try:
+                    username = client_socket.recv(1024).decode()
+                    password = client_socket.recv(1024).decode()
+                    user=self.users_collection.find_one({"username":username,"password":password})
+                    if user:
+                        client_socket.sendall("success_log_in".encode())
+                        print(f"sent success message")
+                        self.clients_list.remove((client_socket, addr))  
+                        client_socket.close()
+                        print(f"Client {addr} ended the conversation")
+                        
+                        break
+                    else:
+                        print(f"Client {addr} failed to log in")
+                except:
+                    print(f"Error receiving message from client {addr}")
+                    self.clients_list.remove((client_socket, addr))
+                    client_socket.close()
+                    break
+
+
+
+exm=Server("127.0.0.1")
+
+'''
     def recieve_from_client(self, client_socket, addr):
         while True:
             try:
@@ -87,7 +115,6 @@ class Server:
                 self.clients_list.remove((client_socket, addr))
                 client_socket.close()
                 break
-        
+'''        
 
 
-exm=Server("127.0.0.1")
