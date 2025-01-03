@@ -43,7 +43,7 @@ class Server:
             client_socket.close()   
 
     def authenticate_log_in(self, client_socket, addr):
-            
+        while True:
             print("starting authentication")
             data=client_socket.recv(1024).decode()
             print(f"received message from {addr}: {data}")
@@ -54,15 +54,11 @@ class Server:
             if user:
                 self.send_message(client_socket, "success_log_in", addr)
                 print(f"sent success message")
-                self.clients_list.remove((client_socket, addr))  
-                client_socket.close()
-                print(f"Client {addr} ended the conversation")
-                        
-                        
+                break
+            
             else:
                 print(f"Client {addr} failed to log in")
-                self.send_message(client_socket, "unable to log in ", addr)
-                self.authenticate_log_in(client_socket, addr)
+                self.send_message(client_socket, "failed_log_in", addr)
             
 
 

@@ -1,6 +1,7 @@
 import socket
 import threading
 import json
+import subprocess
 #from client_setup import setup
 class Client:
 
@@ -33,22 +34,26 @@ class Client:
 
 
     def recieve_from_server(self):
-        try:
-            message = self.client_socket.recv(1024).decode()
-            if not message:
-                pass
-            elif message == "success_log_in":
-                #setup.total_setup()
+        while True:
+            try:
+                message = self.client_socket.recv(1024).decode()
+                if not message:
+                    print("error in message")
+                elif message == "success_log_in":
+                    #setup.total_setup()
+                    print(message)
+                    break
+                else:
+                    print("unable to login")
+                    self.send_to_server()
+            except ConnectionResetError:
+                print("Connection closed by the server.")
                 self.client_socket.close()
-            else:
-                print("unable to login")
-                self.recieve_from_server()
-        except ConnectionResetError:
-            print("Connection closed by the server.")
-            self.client_socket.close()
+        self.connect_ipfs()
 
 
-            
+    def connect_ipfs(self):
+        subprocess.run("python client\client_setup.py",shell=True)
         
             
     
